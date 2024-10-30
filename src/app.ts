@@ -42,12 +42,12 @@ const graphql = octoKit.graphql.defaults({
 function getLabels(issue: Issue): string[] {
     const labels: string[] = [];
 
-    if (issue.issueType && issue.issueType.name) {
-        labels.push(issue.issueType.name.toLocaleLowerCase());
-    }
-
     if (issue.labels && issue.labels.nodes) {
         labels.push(...issue.labels.nodes.map(l => l!.name.toLocaleLowerCase()));
+    }
+
+    if (issue.issueType && issue.issueType.name) {
+        labels.push(issue.issueType.name.toLocaleLowerCase());
     }
 
     return labels;
@@ -66,11 +66,13 @@ function getLabels(issue: Issue): string[] {
     labelOverrides.set("bug", "investigation");
     labelOverrides.set("shield", "investigation");
     labelOverrides.set("engineering-debt", "investigation");
+    labelOverrides.set("slow-query-primary", "investigation");
     labelOverrides.set("feature flag", "feature-flag");
     labelOverrides.set("design-initiative", "product");
     labelOverrides.set("needs-design", "product");
     labelOverrides.set("🎨 needs-design", "product");
     labelOverrides.set("design-only", "product");
+    labelOverrides.set("🎟 design-initiative", "product");
 
     const field = fields.find(f => f.name == "Backlog category") as ProjectV2SingleSelectField;
 

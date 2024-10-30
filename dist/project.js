@@ -77,6 +77,105 @@ export class Project {
         return this.project.fields.nodes;
     }
     /**
+     * Gets a project item from the project board by issue number
+     *
+     * @returns the matching project item
+     */
+    async getItem(repositoryName, issueNumber) {
+        const projectItemQuery = `
+            query ($owner: String!, $repository: String!, $issueNumber: Int!) {
+                repository(owner: $owner, name: $repository) {
+                    issue(number: $issueNumber) {
+                        projectItems(first: 100) {
+                            totalCount
+                            pageInfo {
+                                endCursor
+                                hasNextPage
+                            }
+                            nodes {
+                                id
+                                project {
+                                    id
+                                    number
+                                }
+                                fieldValues(first: 25) {
+                                    totalCount
+                                    pageInfo {
+                                        endCursor
+                                        hasNextPage
+                                    }
+                                    nodes {                
+                                        ... on ProjectV2ItemFieldTextValue {
+                                            __typename
+                                            id
+                                            text
+                                            field {
+                                                ... on ProjectV2FieldCommon {
+                                                    id
+                                                    name
+                                                }
+                                            }
+                                        }
+                                        ... on ProjectV2ItemFieldDateValue {
+                                            __typename
+                                            id
+                                            date
+                                            field {
+                                                ... on ProjectV2FieldCommon {
+                                                    id
+                                                    name
+                                                }
+                                            }
+                                        }
+                                        ... on ProjectV2ItemFieldSingleSelectValue {
+                                            __typename
+                                            id
+                                            name
+                                            optionId
+                                            field {
+                                                ... on ProjectV2FieldCommon {
+                                                    id
+                                                    name
+                                                }
+                                            }
+                                        }
+                                    }              
+                                }
+                                content {
+                                    ... on Issue {
+                                        __typename
+                                        id
+                                        number
+                                        title
+                                        state
+                                        url
+                                        labels(first:100) {
+                                            nodes {
+                                                id
+                                                name
+                                            }
+                                        }
+                                        issueType {
+                                            id
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        `;
+        const results = await this.graphql(projectItemQuery, {
+            owner: this.owner,
+            repository: repositoryName,
+            issueNumber
+        });
+        const { nodes } = results.repository.issue.projectItems;
+        return nodes?.find(i => i?.project.number === this.projectId);
+    }
+    /**
      * Gets all items from the project board
      *
      * @returns all items on the project board
